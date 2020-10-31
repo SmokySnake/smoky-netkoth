@@ -129,7 +129,7 @@ def get_ips():
 
     # Set up the config file string
     out_string = '''[General]
-outfile = ../www/index.html
+outfile = www/index.html
 sleeptime = 60
 
 [Servers To Check]\n'''
