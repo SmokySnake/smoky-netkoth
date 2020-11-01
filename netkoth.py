@@ -37,6 +37,7 @@ serverstocheck = ""
 sleeptime = ""
 outfile = ""
 PORT = 8000
+ispersonal =[]
 
 
 def getsettings():        
@@ -48,7 +49,9 @@ def getsettings():
         outfile = config.get("General", "outfile")
         
 def checkpagesandscore():
+        global ispersonal
         scoresfile = scores.read("netkothscores.txt")
+        ispersonal = []
         for server in serverstocheck:
             try:
                 print "About to check server " + server[0] + " " + server[1]
@@ -66,10 +69,19 @@ def checkpagesandscore():
                     scores.set(serverscoressection, team, 0)
                 currentscore = scores.getint( serverscoressection,team)
                 scores.set( serverscoressection, team, currentscore+1)
+                if re.search('<personal>.*</personal>', html):
+                    personal = re.search('<personal>(.*)</personal>', html, re.IGNORECASE).group(1).strip().replace("=","").replace("<","").replace(">","")
+                    print "Server is " + personal + "'s personal host. Do not hack!!"
+                    ispersonal.append(1)
+                else:
+                    ispersonal.append(0)
             except IOError:
                 print server[0] + " " + server[1] + " may be down, skipping it"
-            except AttributeError:
+                ispersonal.append(0)
+            except AttributeError as e:
+                print e
                 print server[0] + " may not be owned yet"
+                ispersonal.append(0)
         with open("netkothscores.txt", 'wb') as scoresfile:                
                 scores.write(scoresfile)
 
@@ -83,14 +95,18 @@ def makescoresections():
                 if not scores.has_section(serverscoressection):
                         scores.add_section(serverscoressection)
         
-def maketables(server):
+def maketables(server, server_count):
+        global ispersonal
         print "Making score table for " + server[0]
         try:
             serverscoressection = server[0]+"Scores"
             serverscores = scores.items(serverscoressection)
             tableresults = "<div id=\"" + server[0] + "\">"
             tableresults = tableresults + "<table border=\"2\">\n<tr>"
-            tableresults = tableresults + "<td colspan=\"2\"><center><b class=\"scoretabletitle\">" +(server[0]).title() + "</b><br>"
+            if not ispersonal[server_count] or "Total" in server[0]:
+                tableresults = tableresults + "<td colspan=\"2\"><center><b class=\"scoretabletitle\">" +(server[0]).title() + "</b><br>"
+            else:
+                tableresults = tableresults + "<td colspan=\"2\"><center><b class=\"scoretabletitle\">" +(server[0]).title() + "*Pers</b><br>"
             tableresults = tableresults + "<a href=\"" + server[1] + "\">" + server[1]  +"</a>"
             tableresults = tableresults + "</center></td>"
             tableresults = tableresults + "</tr>\n"
@@ -103,7 +119,8 @@ def maketables(server):
                 toptagend="</div>"
             tableresults = tableresults + "</table></div>"
             return tableresults
-        except:
+        except Exception as e:
+            print e
             print "No section for " + server[0]
 
 # Writes all DHCP leases in the dhcpd.leases file to the config file to collect flags from
@@ -158,13 +175,15 @@ while 1:
         checkpagesandscore()       
 
         #------Make Tables
+        server_count = 0
         for server in serverstocheck:
-            thistable = maketables(server)
+            thistable = maketables(server, server_count)
             serverlabeltag=("<" + server[0] + ">").upper()
+            server_count += 1
             print "Searching for " + serverlabeltag + " tag to replace in template.htm (case sensitive)"
             scorepagestring = scorepagestring.replace(serverlabeltag,thistable)
         #------Make Total Table
-        thistable = maketables(["Total",""])
+        thistable = maketables(["Total",""],0)
         serverlabeltag=("<TOTAL>").upper()
         print "Searching for " + serverlabeltag + " to replace (case sensitive)"
         scorepagestring = scorepagestring.replace(serverlabeltag,thistable)

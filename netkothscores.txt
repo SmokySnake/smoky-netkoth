@@ -1,0 +1,10 @@
+[TotalScores]
+
+[flag1Scores]
+
+[flag2Scores]
+
+[flag3Scores]
+
+[flag4Scores]
+
