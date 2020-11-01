@@ -70,7 +70,9 @@ Network King of the Hill
 Setup:
 
 1. Set your host and attack box to the static IP you were provided, in range 10.20.30.10-100/24. IMPORTANT: If you leave either your host or attack box on DHCP, they will show up as attackable IPs. 
-Do so at your own peril. If everyone agrees then setting up your own flag on your attack box could be a fun way to detect and defend attacks to your own machine.
+Do so at your own peril. 
+ALTERNATIVELY: If everyone agrees then setting up your own flag on your attack box could be a fun way to detect and defend attacks to your own machine. Use the &lt;personal&gt;name&lt;/personal&gt; tags to let the scoreboard know this is a 
+flag on a personal box. No one is then to hack this IP, but we didt say anything about not MitM to block or steal points ;).
 
 2. Set your attack box VM to bridge mode, using your ethernet adapter
 
@@ -84,7 +86,7 @@ The IPs for this game will be in the range of:
 Versions will be switching during the game. 
 
 2. Teams try to put up their own defacements at http://IP:80/flag.html, take down other people's defacements, and lock down the box to keep other teams out. NOTE that the flag may not exist at this location, 
-it's your job to make it exist before you can score points. The team’s name must be in the <team></team> tag when they deface the site for the scoring system to register it, but they can change the page however they like.
+it's your job to make it exist before you can score points. The team’s name must be in the &lt;team&gt;name&lt;/team&gt; tag when they deface the site for the scoring system to register it, but they can change the page however they like.
 
 3. Once per minute (more or less) the scoring software will see who currently owns the site, and score it.
 
