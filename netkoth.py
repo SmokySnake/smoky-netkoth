@@ -28,6 +28,7 @@ import re
 import ConfigParser
 import time
 import re
+import random
 
 #------Make some globals
 config = ConfigParser.RawConfigParser()
@@ -37,7 +38,13 @@ serverstocheck = ""
 sleeptime = ""
 outfile = ""
 PORT = 8000
-ispersonal =[]
+
+# True flag changes the port that flags are read from, every 15 flag grabs
+RANDOM_PORT = True
+flag_port = 80
+
+# flagdetails = [personalFlag][currentOwner]
+flagdetails=[[],[]]
 
 
 def getsettings():        
@@ -49,9 +56,9 @@ def getsettings():
         outfile = config.get("General", "outfile")
         
 def checkpagesandscore():
-        global ispersonal
+        global flagdetails 
         scoresfile = scores.read("netkothscores.txt")
-        ispersonal = []
+        flagdetails = [[],[]]
         for server in serverstocheck:
             try:
                 print "About to check server " + server[0] + " " + server[1]
@@ -59,6 +66,7 @@ def checkpagesandscore():
                 #url = urllib2.urlopen(server[1])
                 html = url.read()        
                 team = re.search('<team>(.*)</team>', html, re.IGNORECASE).group(1).strip().replace("=","").replace("<","").replace(">","")
+                flagdetails[1].append(team)
                 print "Server " + server[0] + " owned by " + team
                 serverscoressection = server[0]+"Scores"
                 if not scores.has_option("TotalScores", team): 
@@ -72,16 +80,18 @@ def checkpagesandscore():
                 if re.search('<personal>.*</personal>', html):
                     personal = re.search('<personal>(.*)</personal>', html, re.IGNORECASE).group(1).strip().replace("=","").replace("<","").replace(">","")
                     print "Server is " + personal + "'s personal host. Do not hack!!"
-                    ispersonal.append(1)
+                    flagdetails[0].append(1)
                 else:
-                    ispersonal.append(0)
+                    flagdetails[0].append(0)
             except IOError:
                 print server[0] + " " + server[1] + " may be down, skipping it"
-                ispersonal.append(0)
+                flagdetails[0].append(0)
+                flagdetails[1].append("")
             except AttributeError as e:
                 print e
                 print server[0] + " may not be owned yet"
-                ispersonal.append(0)
+                flagdetails[0].append(0)
+                flagdetails[1].append("")
         with open("netkothscores.txt", 'wb') as scoresfile:                
                 scores.write(scoresfile)
 
@@ -95,15 +105,21 @@ def makescoresections():
                 if not scores.has_section(serverscoressection):
                         scores.add_section(serverscoressection)
         
+# Creates individual flag tables (including Total). 
+# SmokySnake updated to check for personal tag and note, plus highlight current flag owner
+# not just the highest scorer
 def maketables(server, server_count):
-        global ispersonal
+        global flagdetails 
         print "Making score table for " + server[0]
         try:
             serverscoressection = server[0]+"Scores"
             serverscores = scores.items(serverscoressection)
             tableresults = "<div id=\"" + server[0] + "\">"
             tableresults = tableresults + "<table border=\"2\">\n<tr>"
-            if not ispersonal[server_count] or "Total" in server[0]:
+
+            # If flag has personal tag, or is the Total table, create normal table
+            # else note as a personally tagged flag with "*Pers"
+            if not flagdetails[0][server_count] or "Total" in server[0]:
                 tableresults = tableresults + "<td colspan=\"2\"><center><b class=\"scoretabletitle\">" +(server[0]).title() + "</b><br>"
             else:
                 tableresults = tableresults + "<td colspan=\"2\"><center><b class=\"scoretabletitle\">" +(server[0]).title() + "*Pers</b><br>"
@@ -112,22 +128,37 @@ def maketables(server, server_count):
             tableresults = tableresults + "</tr>\n"
             serverscores.sort(key=lambda score: -int(score[1]))
             toptagstart="<div class=\"topscore\">"
+            othertagstart="<div class=\"otherscore\">"
             toptagend="</div>"
-            for team in serverscores:
-                tableresults = tableresults + "<tr><td>" + toptagstart + team[0].title() + toptagend + "</td><td>" + toptagstart + str(team[1]) +  toptagend  + "</td></tr>\n"
-                toptagstart="<div class=\"otherscore\">"
-                toptagend="</div>"
-            tableresults = tableresults + "</table></div>"
+            othertagend="</div>"
+            # For the Total table, highlight top scorer
+            if "Total" in server[0]:
+                temp_team_count = 0
+                for team in serverscores:
+                    if temp_team_count == 0:
+                        tableresults = tableresults + "<tr><td>" + toptagstart + team[0].title() + toptagend + "</td><td>" + toptagstart + str(team[1]) +  toptagend  + "</td></tr>\n"
+                    else:
+                        tableresults = tableresults + "<tr><td>" + othertagstart + team[0].title() + othertagend + "</td><td>" + othertagstart + str(team[1]) +  othertagend  + "</td></tr>\n"
+                    temp_team_count += 1
+                tableresults = tableresults + "</table></div>"
+            # For all other flag tables, highlight current flag owner
+            else:
+                for team in serverscores:
+                    if team[0] == flagdetails[1][server_count]:
+                        tableresults = tableresults + "<tr><td>" + toptagstart + team[0].title() + toptagend + "</td><td>" + toptagstart + str(team[1]) +  toptagend  + "</td></tr>\n"
+                    else:
+                        tableresults = tableresults + "<tr><td>" + othertagstart + team[0].title() + othertagend + "</td><td>" + othertagstart + str(team[1]) +  othertagend  + "</td></tr>\n"
+                tableresults = tableresults + "</table></div>"
             return tableresults
-        except Exception as e:
-            print e
+        except Exception:
             print "No section for " + server[0]
 
 # Writes all DHCP leases in the dhcpd.leases file to the config file to collect flags from
 # This currently means expired IPs as well as participants IPs are set up as flags at
 # http://IP:80/flag.html. Adds interesting dynamic but might need to change.
 # TODO: Change the port that flags are found at. Forces participants to listen to net traffic
-def get_ips():
+def get_ips(while_counter):
+    global flag_port, RANDOM_PORT
     # The file where dhcp files are kept (including old ones)
     lease_file = open('/var/lib/dhcp/dhcpd.leases', 'r')
 
@@ -150,9 +181,12 @@ outfile = www/index.html
 sleeptime = 60
 
 [Servers To Check]\n'''
-
+   
+    # If flag port randomisation is set, change flag port between 7990-8010 every 15 flag grab cycles (mins)
+    if RANDOM_PORT == True and while_counter % 15 == 0:
+        flag_port = 8000 + random.randint(-10,10)
     for ip in ips:
-        out_string += 'flag' + str(var_num) + ' = ' + 'http://' + ip + ':80/flag.html\n'
+        out_string += 'flag' + str(var_num) + ' = ' + 'http://' + ip + ":" + str(flag_port) + '/flag.html\n'
         var_num += 1
 
     # Write the output string to the config file
@@ -163,9 +197,11 @@ sleeptime = 60
     lease_file.close()
 
 #------Main begin
+while_counter = 1
 while 1:
         #------Update config file IPs from DHCP leases
-        get_ips()
+        get_ips(while_counter)
+        while_counter += 1
         #------Check files that may have changed since las loop
         getsettings() #-------Grab core config values, you have the option to edit config file as the game runs
         makescoresections() #In case score setions for a bax are not there
