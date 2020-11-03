@@ -34,6 +34,7 @@ import random
 config = ConfigParser.RawConfigParser()
 scores = ConfigParser.RawConfigParser()
 configfile =""
+serverstoignore = ""
 serverstocheck = ""
 sleeptime = ""
 outfile = ""
@@ -42,19 +43,62 @@ PORT = 8000
 # True flag changes the port that flags are read from, every 15 flag grabs
 RANDOM_PORT = True
 flag_port = 80
+DHCP_FLAGS = ""
 
 # flagdetails = [personalFlag][currentOwner]
 flagdetails=[[],[]]
 
 
-def getsettings():        
+def getsettings(while_counter):        
         print "Grabbing settings"
-        global configfile, serverstocheck, sleeptime, outfile
+        global configfile, serverstocheck, sleeptime, outfile, serverstoignore, DHCP_FLAGS
+
+        # Get the dhcp flags setting
+        configfile = config.read("baseconfig.ini")
+        DHCP_FLAGS = config.get("General", "dhcp")
+        if DHCP_FLAGS:
+            get_ips(while_counter)
+        else:
+            # If no DHCP_FLAGS set, then need to write to netkothconfig.ini like get_ips does
+            base_file = open('baseconfig.ini', 'r')
+            out_string = base_file.read()
+            out_file = open('netkothconfig.ini','w')
+            # Write the output string to the config file
+            n = out_file.write(out_string)
+
+            # Clean up and close out of opened files
+            out_file.close()
+            base_file.close()
+            
+        # Get remaining settings
         configfile = config.read("netkothconfig.ini")
+        serverstoignore = config.items("Servers To Ignore")
         serverstocheck = config.items("Servers To Check")
         sleeptime = config.getint("General", "sleeptime")
         outfile = config.get("General", "outfile")
-        
+
+
+# Remove the serverstoignore from serverstocheck list
+def removeservers():
+        global serverstocheck, serverstoignore
+        remove_server = []
+        for server in serverstocheck:
+            remove_flag = False
+            for ignoreserver in serverstoignore:
+                if ignoreserver[1] in server[1]:
+                    remove_flag = True
+            if remove_flag == True:
+                remove_server.append(1)
+            else:
+                remove_server.append(0)
+
+        server_counter = 0
+        for this_server in remove_server:
+            if this_server == 1:
+                del serverstocheck[server_counter]
+            else:
+                server_counter += 1
+
 def checkpagesandscore():
         global flagdetails 
         scoresfile = scores.read("netkothscores.txt")
@@ -87,8 +131,7 @@ def checkpagesandscore():
                 print server[0] + " " + server[1] + " may be down, skipping it"
                 flagdetails[0].append(0)
                 flagdetails[1].append("")
-            except AttributeError as e:
-                print e
+            except AttributeError:
                 print server[0] + " may not be owned yet"
                 flagdetails[0].append(0)
                 flagdetails[1].append("")
@@ -109,7 +152,7 @@ def makescoresections():
 # SmokySnake updated to check for personal tag and note, plus highlight current flag owner
 # not just the highest scorer
 def maketables(server, server_count):
-        global flagdetails 
+        global flagdetails
         print "Making score table for " + server[0]
         try:
             serverscoressection = server[0]+"Scores"
@@ -162,6 +205,10 @@ def get_ips(while_counter):
     # The file where dhcp files are kept (including old ones)
     lease_file = open('/var/lib/dhcp/dhcpd.leases', 'r')
 
+    # The user modifiable configuration file, used as the base for the active config file
+    base_file = open('baseconfig.ini', 'r')
+    out_string = base_file.read()
+
     # The file final flag ips are written to
     out_file = open('netkothconfig.ini','w')
 
@@ -175,13 +222,6 @@ def get_ips(while_counter):
     # Prepare the output
     var_num = 1
 
-    # Set up the config file string
-    out_string = '''[General]
-outfile = www/index.html
-sleeptime = 60
-
-[Servers To Check]\n'''
-   
     # If flag port randomisation is set, change flag port between 7990-8010 every 15 flag grab cycles (mins)
     if RANDOM_PORT == True and while_counter % 15 == 0:
         flag_port = 8000 + random.randint(-10,10)
@@ -194,16 +234,17 @@ sleeptime = 60
 
     # Clean up and close out of opened files
     out_file.close()
+    base_file.close()
     lease_file.close()
 
 #------Main begin
 while_counter = 1
 while 1:
+        #------Check files that may have changed since las loop
+        getsettings(while_counter) #-------Grab core config values, you have the option to edit config file as the game runs
         #------Update config file IPs from DHCP leases
         get_ips(while_counter)
-        while_counter += 1
-        #------Check files that may have changed since las loop
-        getsettings() #-------Grab core config values, you have the option to edit config file as the game runs
+        removeservers()
         makescoresections() #In case score setions for a bax are not there
         templatefilehandle = open("template.htm", 'r')        
         scorepagestring=templatefilehandle.read()
@@ -229,5 +270,6 @@ while 1:
         outfilehandle.write(scorepagestring)
         outfilehandle.close()
         print "Sleeping for " + str(sleeptime)
+        while_counter += 1
         time.sleep(sleeptime)
 #------Main end
