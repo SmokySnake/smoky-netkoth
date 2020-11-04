@@ -1,12 +1,15 @@
 #!/usr/local/bin/python
 """
 This is Irongeek's automated scoring code for the NetKotH game.
-Create a netkothconfig.ini in the same directory as the script
+Create a baseconfig.ini in the same directory as the script
 to look something like:
 ______________________________________________________________
 [General]
 outfile = default.htm
 sleeptime = 6
+
+[Servers To Ignore]
+Ignore1 = http://127.0.0.1:80/flag.html
 
 [Servers To Check]
 linux = http://127.0.0.1/a.htm
