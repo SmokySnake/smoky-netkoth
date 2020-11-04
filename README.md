@@ -6,13 +6,13 @@ Credit goes to Irongeek and the original can be found at the original site: http
 ## Usage:
 1.  Build the server with the `buildServer.sh` script by setting up DHCP (note only tested on Ubuntu 20.04). Only works automatically with single interface, can have multiple but requires some manual fiddling with netplan. See notes in script
 
-   ```
-   ubuntu@ubuntu2004:~$ chmod 755 buildServer.sh
-   ubuntu@ubuntu2004:~$ ./buildServer.sh
-   ubuntu@ubuntu2004:~$ python netkoth.py
-   ubuntu@ubuntu2004:~$ cd ../www #Wherever the smoky-netkoth/www directory is
-   ubuntu@ubuntu2004:~$ python -m SimpleHTTPServer 8000
-   ```
+    ```
+    ubuntu@ubuntu2004:~$ chmod 755 buildServer.sh
+    ubuntu@ubuntu2004:~$ ./buildServer.sh
+    ubuntu@ubuntu2004:~$ python netkoth.py
+    ubuntu@ubuntu2004:~$ cd ../www #Wherever the smoky-netkoth/www directory is
+    ubuntu@ubuntu2004:~$ python -m SimpleHTTPServer 8000
+    ```
 
 1.  Now have users navigate to `http://10.20.30.1:8000` to see the scoreboard and game instructions
 
