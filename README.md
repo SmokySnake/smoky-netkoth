@@ -9,7 +9,7 @@ Credit goes to Irongeek and the original can be found at the original site: http
     ```
     ubuntu@ubuntu2004:~$ chmod 755 buildServer.sh
     ubuntu@ubuntu2004:~$ ./buildServer.sh
-    ubuntu@ubuntu2004:~$ ./buildVpn.sh
+    ubuntu@ubuntu2004:~$ ./buildVpn.sh #If you didn't build it at the end of previous step
     ubuntu@ubuntu2004:~$ python netkoth.py
     ubuntu@ubuntu2004:~$ cd ../www #Wherever the smoky-netkoth/www directory is
     ubuntu@ubuntu2004:~$ python -m SimpleHTTPServer 8000
