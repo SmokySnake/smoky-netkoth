@@ -9,6 +9,7 @@ Credit goes to Irongeek and the original can be found at the original site: http
     ```
     ubuntu@ubuntu2004:~$ chmod 755 buildServer.sh
     ubuntu@ubuntu2004:~$ ./buildServer.sh
+    ubuntu@ubuntu2004:~$ ./buildVpn.sh
     ubuntu@ubuntu2004:~$ python netkoth.py
     ubuntu@ubuntu2004:~$ cd ../www #Wherever the smoky-netkoth/www directory is
     ubuntu@ubuntu2004:~$ python -m SimpleHTTPServer 8000
@@ -33,6 +34,7 @@ Credit goes to Irongeek and the original can be found at the original site: http
 | Nov 2020 | Personal server flag option |
 | Nov 2020 | Random `flag_port` option | 
 | Nov 2020 | `baseconfig.ini` file for user modifiable settings (ignoreservers option) |
+| Dec 2020 | `buildVpn.sh` file for automatically deploying a VPN, and creating a single use linux client1.ovpn file |
 
 ## Features to add:
 *  VPN
@@ -40,3 +42,4 @@ Credit goes to Irongeek and the original can be found at the original site: http
 *  Separate score page from instructions page
 *  Set up other point scoring types (not just http, e.g. have servers phone home or server check services are up
 *  Introduce firewalls and pivot machines to unflatten network
+*  Create windows client1.ovpn file too in the `buildVpn.sh` file
