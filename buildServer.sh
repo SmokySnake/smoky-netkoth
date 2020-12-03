@@ -32,7 +32,6 @@ sudo apt install python3 -y
 echo 'Install other useful things'
 sudo apt install tmux -y
 
-
 echo "[!]echo INTERFACES=\"$dhcp_int\" | sudo tee /etc/default/isc-dhcp-server"
 echo "INTERFACES=\"$dhcp_int\"" | sudo tee /etc/default/isc-dhcp-server
 
@@ -97,3 +96,16 @@ echo Server built, to start open two terminal sessions \(tmux or ssh\) and run:
 echo python netkoth.py
 echo Navigate to the smoky-netkoth/www directory:
 echo python -m SimpleHTTPServer 8000
+
+# Should we build the vpn server while we're here?
+read -p "Would you like to build the VPN server now? [Y/n] " vpn_now
+vpn_now=${vpn_now:-Y}
+
+if [[ $vpn_now == "Y" || $vpn_now == "y" ]]; then
+	echo Building VPN now
+	./buildVpn.sh
+else
+	echo "Not building VPN now. You can build later with ./buildVpn.sh"
+	echo "***************** DONE ********************"
+fi
+	
