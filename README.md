@@ -23,6 +23,8 @@ Credit goes to Irongeek and the original can be found at the original site: http
 
 1. This server will hand out DHCP IPs in the range `10.20.30.101-200`, and periodically check for a flag at `http://IP:80/flag.html`. Users will receive points by filling their team name into this `flag.html` file in the format `<team>USERNAME</team>`
 
+1.  Provide the `~/client-configs/files/client1.ovpn` to players. They need to install `openvpn` and run `sudo openvpn client1.ovpn`
+
 1.  Have fun!!
 
 ## SmokySnake Change log:
