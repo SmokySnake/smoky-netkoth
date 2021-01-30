@@ -37,6 +37,7 @@ Credit goes to Irongeek and the original can be found at the original site: http
 | Nov 2020 | Random `flag_port` option | 
 | Nov 2020 | `baseconfig.ini` file for user modifiable settings (ignoreservers option) |
 | Dec 2020 | `buildVpn.sh` file for automatically deploying a VPN, and creating a single use linux client1.ovpn file |
+| Jan 2021 | `buildVpn.sh` takes interface and ip parameters from `buildServer.sh`. `buildServer.sh` handles multiple interfaces |
 
 ## Features to add:
 - [x]  VPN

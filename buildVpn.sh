@@ -5,8 +5,10 @@ me=$(whoami)
 
 # Get user defined variables
 ip address
-read -p "Please type the name of the interface ctf targets are on (e.g. ens33):" ctf_int
-read -p "Please type the IP address of the interface connected to the physical network (e.g. 192.168.237.16): " phys_ip
+ctf_int=$1
+phys_ip=$2
+[ ! -z $ctf_int ] && echo CTF interface: $ctf_int || read -p "Please type the name of the interface ctf targets are on (e.g. ens33):" ctf_int
+[ ! -z $phys_ip ] && echo CTF IP: $phys_ip || read -p "Please type the IP address of the interface connected to the physical network (e.g. 192.168.237.16): " phys_ip
 read -p "Please enter the email for your ca cert, can be fake, just remember it [ctf@ctf.com] " ca_email
 ca_email=${ca_email:-ctf@ctf.com}
 
@@ -85,7 +87,7 @@ ca ca.crt
 cert server.crt
 key server.key
 dh none
-server 10.8.0.0 255.255.255.0
+server 10.20.31.0 255.255.255.0
 ifconfig-pool-persist /var/log/openvpn/ipp.txt
 push "route 10.20.30.0 255.255.255.0"
 duplicate-cn
@@ -111,7 +113,7 @@ sudo sysctl -p
 ufw_string="""#OPENVPN RULES
 *nat
 :POSTROUTING ACCEPT [0:0]
--A POSTROUTING -s 10.8.0.0/16 -o $ctf_int -j MASQUERADE
+-A POSTROUTING -s 10.20.31.0/24 -o $ctf_int -j MASQUERADE
 COMMIT
 # END OPENVPN RULES
 """
