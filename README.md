@@ -1,10 +1,14 @@
 # smoky-netkoth
-My version of Irongeek's netkoth CTF scoreboard. Automatically grabs flag ips based on DHCP leases.
+My version of Irongeek's netkoth CTF scoreboard. Automatically grabs flag ips based on DHCP leases. Scripts build the server including VPN and linux `.ovpn` files.
 
-Credit goes to Irongeek and the original can be found at the original site: http://www.irongeek.com/
+Credit for scoring server goes to Irongeek and the original can be found at the original site: http://www.irongeek.com/
+
+![CTF network diagram](resources/smoky-netkoth_net.JPG "CTF network diagram")
 
 ## Usage:
-1.  Build the server with the `buildServer.sh` script by setting up DHCP (note only tested on Ubuntu 20.04). Only works automatically with single interface, can have multiple but requires some manual fiddling with netplan. See notes in script
+1.  Set up Ubuntu 20 server with two interfaces (one host only network which will connect CTF targets, and one player network which VPN will connect through, also will need internet from this interface initially).
+
+1.  Build the server with the `buildServer.sh` script by setting up DHCP (note only tested on Ubuntu 20.04).
 
     ```
     ubuntu@ubuntu2004:~$ chmod 755 buildServer.sh
@@ -19,9 +23,7 @@ Credit goes to Irongeek and the original can be found at the original site: http
 
 1.  Now have players navigate to `http://10.20.30.1:8000` or your physical IP to see the scoreboard and game instructions
 
-1.  If you don't want player's IPs showing up as flags, connect players with static IPs in the range `10.20.30.10-100` OR just have them use the VPN which will give them an IP 10.8.0.3-90.
-
-1. Connect any challenge box such as found at vulnhub, that has DHCP enabled and can have a webserver set up (doesn't even need to be set up intially, but once participants root the box they should be able to set one up). 
+1. Connect any challenge box such as found at vulnhub to the CTF network, that has DHCP enabled and can have a webserver set up (doesn't even need to be set up intially, but once participants root the box they should be able to set one up). 
 
 1. This server will hand out DHCP IPs in the range `10.20.30.101-200`, and periodically check for a flag at `http://IP:80/flag.html`. Players will receive points by filling their team name into this `flag.html` file in the format `<team>USERNAME</team>`
 
@@ -37,7 +39,7 @@ Credit goes to Irongeek and the original can be found at the original site: http
 | Nov 2020 | Random `flag_port` option | 
 | Nov 2020 | `baseconfig.ini` file for user modifiable settings (ignoreservers option) |
 | Dec 2020 | `buildVpn.sh` file for automatically deploying a VPN, and creating a single use linux client1.ovpn file |
-| Jan 2021 | `buildVpn.sh` takes interface and ip parameters from `buildServer.sh`. `buildServer.sh` handles multiple interfaces |
+| Jan 2021 | `buildVpn.sh` takes int and ip params from `buildServer.sh` which now handles multiple interfaces |
 
 ## Features to add:
 - [x]  VPN
